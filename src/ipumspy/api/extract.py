@@ -14,6 +14,8 @@ from ipumspy.utilities import CollectionInformation
 
 from .exceptions import IpumsExtractNotSubmitted
 
+def test():
+    return "test"
 
 class DefaultCollectionWarning(Warning):
     pass
@@ -170,6 +172,59 @@ class CpsExtract(BaseExtract, collection="cps"):
         samples: List[str],
         variables: List[str],
         description: str = "My IPUMS CPS extract",
+        data_format: str = "fixed_width",
+        **kwargs,
+    ):
+        """
+        Defining an IPUMS CPS extract.
+
+        Args:
+            samples: list of IPUMS CPS sample IDs
+            variables: list of IPUMS CPS variable names
+            description: short description of your extract
+            data_format: fixed_width and csv supported
+        """
+
+        super().__init__()
+        self.samples = samples
+        self.variables = variables
+        self.description = description
+        self.data_format = data_format
+        self.collection = self.collection
+        """Name of an IPUMS data collection"""
+
+        # check kwargs for conflicts with defaults
+        self._kwarg_warning(kwargs)
+
+    @classmethod
+    def from_api_response(cls, api_response: Dict[str, Any]) -> CpsExtract:
+        return cls(
+            samples=list(api_response["samples"]),
+            variables=list(api_response["variables"]),
+            data_format=api_response["data_format"],
+            description=api_response["description"],
+        )
+
+    def build(self) -> Dict[str, Any]:
+        """
+        Convert the object into a dictionary to be passed to the IPUMS API
+        as a JSON string
+        """
+        return {
+            "description": self.description,
+            "data_format": self.data_format,
+            "data_structure": {"rectangular": {"on": "P"}},
+            "samples": {sample: {} for sample in self.samples},
+            "variables": {variable.upper(): {} for variable in self.variables},
+            "collection": self.collection,
+        }
+
+class NHGISExtract(BaseExtract, collection="nhgis"):
+    def __init__(
+        self,
+        samples: List[str],
+        variables: List[str],
+        description: str = "My IPUMS NHGIS extract",
         data_format: str = "fixed_width",
         **kwargs,
     ):

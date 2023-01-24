@@ -26,6 +26,8 @@ from .types import FilenameType
 class CitationWarning(Warning):
     pass
 
+def test():
+    return "test"
 
 def read_ipums_ddi(ddi_file: fileutils.FileType) -> ddi_definitions.Codebook:
     """
